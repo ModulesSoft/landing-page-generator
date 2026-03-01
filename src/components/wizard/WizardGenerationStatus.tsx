@@ -94,7 +94,8 @@ const WizardGenerationStatus: React.FC<WizardGenerationStatusProps> = ({
         body: JSON.stringify({
           theme: analysisResult.theme,
           mappings: finalSelection,
-          sourceUrl: scrapeResult.sourceUrl
+          sourceUrl: scrapeResult.sourceUrl,
+          sessionId: sessionIdInState // Pass existing session ID if available
         })
       });
       const data = await response.json();

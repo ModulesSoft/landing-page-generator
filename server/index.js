@@ -26,19 +26,16 @@ app.use(cors());
 app.use(express.json());
 
 const gemini = new GeminiAdapter(process.env.GEMINI_API_KEY);
-const limiter = new RateLimiter({ rpm: 3, bufferFactor: 1.2 }); // 1.2 for safety
+const limiter = new RateLimiter({ rpm: 3, bufferFactor: 1.2 });
 
-// In-memory session store for generation progress
 const sessions = new Map();
 
-// Dev-only gate
 if (process.env.NODE_ENV === 'production') {
   console.error('ERROR: Dev server should not run in production!');
   process.exit(1);
 }
 
 app.post('/api/dev/scrape', async (req, res) => {
-  console.log('POST /api/dev/scrape - Body:', req.body);
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'URL is required' });
 
@@ -57,16 +54,11 @@ app.post('/api/dev/scrape', async (req, res) => {
     const page = await context.newPage();
     await page.setViewportSize({ width: 1280, height: 800 });
 
-    console.log(`Scraping: ${url}`);
     const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 });
-
-    if (response && response.status() === 403) {
-      throw new Error('Access Forbidden (403). The site might be blocking automated scrapers.');
-    }
+    if (response && response.status() === 403) throw new Error('Access Forbidden (403)');
 
     const pageInfo = await page.evaluate(() => {
       const getComputedStyle = (el) => window.getComputedStyle(el);
-      const bodyStyle = getComputedStyle(document.body);
       const primaryColors = new Set();
       document.querySelectorAll('h1, h2, h3, button, a').forEach(el => {
         const style = getComputedStyle(el);
@@ -76,7 +68,7 @@ app.post('/api/dev/scrape', async (req, res) => {
       return {
         title: document.title,
         colors: Array.from(primaryColors).filter(c => c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent'),
-        fontFamily: bodyStyle.fontFamily,
+        fontFamily: window.getComputedStyle(document.body).fontFamily,
       };
     });
 
@@ -91,25 +83,21 @@ app.post('/api/dev/scrape', async (req, res) => {
         if (semanticTags.includes(el.tagName)) return true;
         const id = el.id?.toLowerCase() || '';
         const className = typeof el.className === 'string' ? el.className.toLowerCase() : '';
-        const isRootContainer = id === 'root' || id === 'app' || id === '__next' || className.includes('app-container') || className.includes('layout-wrapper');
-        if (isRootContainer) return false;
+        if (id === 'root' || id === 'app' || id === '__next' || className.includes('app-container') || className.includes('layout-wrapper')) return false;
         if (el.tagName === 'DIV') {
-          const hasSemanticChild = el.querySelector('section, header, footer, nav, main, article');
-          if (hasSemanticChild) return false;
-          const rect = el.getBoundingClientRect();
-          return rect.height > 100 && el.innerText.trim().length > 0;
+          if (el.querySelector('section, header, footer, nav, main, article')) return false;
+          return el.getBoundingClientRect().height > 100 && el.innerText.trim().length > 0;
         }
         return false;
       };
       const processElement = (el) => {
-        const style = window.getComputedStyle(el);
-        if (style.display === 'none' || style.visibility === 'hidden') return;
+        if (window.getComputedStyle(el).display === 'none') return;
         if (isSection(el)) {
+          const style = window.getComputedStyle(el);
           const images = [];
           el.querySelectorAll('img').forEach(img => { if (img.src) images.push({ src: resolveUrl(img.src), alt: img.alt }); });
-          const bgImg = style.backgroundImage;
-          if (bgImg && bgImg !== 'none') {
-            const match = bgImg.match(/url\("(.*)"\)/);
+          if (style.backgroundImage !== 'none') {
+            const match = style.backgroundImage.match(/url\("(.*)"\)/);
             if (match) images.push({ src: resolveUrl(match[1]), type: 'background' });
           }
           results.push({
@@ -139,8 +127,7 @@ app.post('/api/dev/scrape', async (req, res) => {
 
     res.json({ ...pageInfo, sections, sourceUrl: url });
   } catch (error) {
-    console.error('Scrape error:', error);
-    res.status(500).json({ error: `Failed to scrape: ${error.message}` });
+    res.status(500).json({ error: error.message });
   } finally {
     if (browser) await browser.close();
   }
@@ -148,57 +135,56 @@ app.post('/api/dev/scrape', async (req, res) => {
 
 app.post('/api/dev/analyze', async (req, res) => {
   const { title, colors, fontFamily, sections } = req.body;
-  if (!sections || !Array.isArray(sections)) return res.status(400).json({ error: 'Sections are required' });
-
-  const systemPrompt = ANALYZE_SYSTEM_PROMPT;
-  const userPrompt = getAnalyzeUserPrompt(title, colors, fontFamily, sections);
-
   try {
-    const result = await limiter.schedule(() => gemini.generateJSON(systemPrompt, userPrompt));
+    const result = await limiter.schedule(() => gemini.generateJSON(ANALYZE_SYSTEM_PROMPT, getAnalyzeUserPrompt(title, colors, fontFamily, sections)));
     res.json(result);
   } catch (error) {
-    console.error('AI Analysis error:', error);
-    res.status(500).json({ error: `AI Analysis failed: ${error.message}` });
+    res.status(500).json({ error: error.message });
   }
 });
 
 /**
- * Generation Endpoint (Session-based)
+ * Generation Endpoint with Resume Support
  */
 app.post('/api/dev/generate', async (req, res) => {
-  const { theme, mappings, sourceUrl } = req.body;
-  if (!mappings || !Array.isArray(mappings)) return res.status(400).json({ error: 'Mappings are required' });
+  const { theme, mappings, sourceUrl, sessionId: existingSessionId } = req.body;
 
-  const sessionId = Math.random().toString(36).substring(2, 11);
-  const tasks = [];
+  let session;
+  if (existingSessionId && sessions.has(existingSessionId)) {
+    session = sessions.get(existingSessionId);
+    console.log(`[Wizard] Resuming session: ${existingSessionId}`);
+    session.status = 'processing';
+    session.error = null;
+  } else {
+    if (!mappings || !Array.isArray(mappings)) return res.status(400).json({ error: 'Mappings are required' });
+    
+    const sessionId = Math.random().toString(36).substring(2, 11);
+    const tasks = [
+      { id: 'init', name: 'Initialize project structure', status: 'pending' },
+      { id: 'configs', name: 'Generate JSON configurations', status: 'pending' }
+    ];
+    mappings.forEach(m => {
+      if (m.isNew) tasks.push({ id: `comp-${m.sectionId}`, name: `Generate component for ${m.sectionId}`, status: 'pending' });
+    });
+    tasks.push({ id: 'flush', name: 'Write files to disk', status: 'pending' });
 
-  // Prepare task list for UI
-  tasks.push({ id: 'init', name: 'Initialize project structure', status: 'pending' });
-  tasks.push({ id: 'configs', name: 'Generate JSON configurations', status: 'pending' });
-  mappings.forEach(m => {
-    if (m.isNew) {
-      tasks.push({ id: `comp-${m.sectionId}`, name: `Generate component for ${m.sectionId}`, status: 'pending' });
-    }
-  });
-  tasks.push({ id: 'flush', name: 'Write files to disk', status: 'pending' });
+    session = { 
+      id: sessionId, 
+      status: 'processing', 
+      tasks, 
+      result: null, 
+      error: null,
+      fileBuffer: new Map() // Persist files in session
+    };
+    sessions.set(sessionId, session);
+  }
 
-  const session = {
-    id: sessionId,
-    status: 'processing',
-    tasks,
-    result: null,
-    error: null
-  };
-  sessions.set(sessionId, session);
-
-  // Start background process
   runGeneration(session, theme, mappings, sourceUrl).catch(err => {
-    console.error(`Session ${sessionId} failed:`, err);
     session.status = 'failed';
     session.error = err.message;
   });
 
-  res.json({ sessionId });
+  res.json({ sessionId: session.id });
 });
 
 app.get('/api/dev/generate/status/:sessionId', (req, res) => {
@@ -208,8 +194,9 @@ app.get('/api/dev/generate/status/:sessionId', (req, res) => {
 });
 
 async function runGeneration(session, theme, mappings, sourceUrl) {
+  const getTask = (id) => session.tasks.find(t => t.id === id);
   const updateTask = (id, status) => {
-    const task = session.tasks.find(t => t.id === id);
+    const task = getTask(id);
     if (task) task.status = status;
   };
 
@@ -218,73 +205,83 @@ async function runGeneration(session, theme, mappings, sourceUrl) {
     const slug = urlObj.hostname.replace(/\./g, '-');
     const landingPath = path.join(PROJECT_ROOT, 'src', 'landings', slug);
     const stepsPath = path.join(landingPath, 'steps', 'home');
-    
-    const fileBuffer = new Map(); // path -> content
 
-    updateTask('init', 'processing');
-    updateTask('init', 'done');
+    // 1. Init
+    if (getTask('init').status !== 'done') {
+      updateTask('init', 'processing');
+      await fs.mkdir(landingPath, { recursive: true });
+      await fs.mkdir(stepsPath, { recursive: true });
+      updateTask('init', 'done');
+    }
 
-    updateTask('configs', 'processing');
-    const themeJson = {
-      colors: { primary: theme.primaryColor, secondary: "#64748b", background: "#ffffff", text: "#0f172a" },
-      fonts: { display: theme.fontFamily, body: theme.fontFamily },
-      radius: { button: "0.5rem", card: "0.75rem" }
-    };
-    fileBuffer.set(path.join(landingPath, 'theme.json'), JSON.stringify(themeJson, null, 2));
+    // 2. Configs
+    if (getTask('configs').status !== 'done') {
+      updateTask('configs', 'processing');
+      const themeJson = {
+        colors: { primary: theme.primaryColor, secondary: "#64748b", background: "#ffffff", text: "#0f172a" },
+        fonts: { display: theme.fontFamily, body: theme.fontFamily },
+        radius: { button: "0.5rem", card: "0.75rem" }
+      };
+      session.fileBuffer.set(path.join(landingPath, 'theme.json'), JSON.stringify(themeJson, null, 2));
+      session.fileBuffer.set(path.join(landingPath, 'flow.json'), JSON.stringify({ steps: [{ id: "home", type: "normal", layout: null }], initialStepId: "home" }, null, 2));
 
-    const flowJson = { steps: [{ id: "home", type: "normal", layout: null }], initialStepId: "home" };
-    fileBuffer.set(path.join(landingPath, 'flow.json'), JSON.stringify(flowJson, null, 2));
+      const layout = {
+        sections: mappings.map(m => {
+          const cleanId = m.sectionId.replace(/[^a-zA-Z0-9]/g, '');
+          const pascalId = cleanId.charAt(0).toUpperCase() + cleanId.slice(1);
+          const componentName = m.isNew ? `Auto${m.suggestedComponent}${pascalId}` : m.suggestedComponent;
+          return { id: m.sectionId, component: componentName, props: m.props || { title: m.originalTitle }, actions: m.actions || {} };
+        })
+      };
+      session.fileBuffer.set(path.join(stepsPath, 'desktop.json'), JSON.stringify(layout, null, 2));
+      session.fileBuffer.set(path.join(stepsPath, 'mobile.json'), JSON.stringify(layout, null, 2));
+      updateTask('configs', 'done');
+    }
 
-    const layout = {
-      sections: mappings.map(m => {
-        // PASCAL CASE CONVERSION: Auto + SuggestedComponent + SectionId (cleaned)
-        // Example: AutoHeroSection0
-        const cleanId = m.sectionId.replace(/[^a-zA-Z0-9]/g, '');
-        const pascalId = cleanId.charAt(0).toUpperCase() + cleanId.slice(1);
-        const componentName = m.isNew ? `Auto${m.suggestedComponent}${pascalId}` : m.suggestedComponent;
-
-        return {
-          id: m.sectionId,
-          component: componentName,
-          props: m.props || { title: m.originalTitle },
-          actions: m.actions || {}
-        };
-      })
-    };
-    fileBuffer.set(path.join(stepsPath, 'desktop.json'), JSON.stringify(layout, null, 2));
-    fileBuffer.set(path.join(stepsPath, 'mobile.json'), JSON.stringify(layout, null, 2));
-    updateTask('configs', 'done');
-
-    // Generate components
+    // 3. Components
     for (const m of mappings) {
       if (m.isNew) {
         const taskId = `comp-${m.sectionId}`;
+        if (getTask(taskId).status === 'done') continue;
+
         updateTask(taskId, 'processing');
-        
         const cleanId = m.sectionId.replace(/[^a-zA-Z0-9]/g, '');
         const pascalId = cleanId.charAt(0).toUpperCase() + cleanId.slice(1);
         const componentName = `Auto${m.suggestedComponent}${pascalId}`;
         const componentPath = path.join(PROJECT_ROOT, 'src', 'components', 'wizard', `${componentName}.tsx`);
         
-        const systemPrompt = GENERATE_COMPONENT_SYSTEM_PROMPT;
-        const userPrompt = getGenerateComponentUserPrompt(componentName, m.suggestedComponent, m.props);
-
-        const codeResponse = await limiter.schedule(() => gemini.generateJSON(systemPrompt, userPrompt));
-        fileBuffer.set(componentPath, codeResponse.code);
-        updateTask(taskId, 'done');
+        try {
+          const codeResponse = await limiter.schedule(() => gemini.generateJSON(GENERATE_COMPONENT_SYSTEM_PROMPT, getGenerateComponentUserPrompt(componentName, m.suggestedComponent, m.props)));
+          session.fileBuffer.set(componentPath, codeResponse.code);
+          updateTask(taskId, 'done');
+        } catch (err) {
+          // If a component fails, we stop the loop so the user can retry this specific task
+          updateTask(taskId, 'failed');
+          throw new Error(`AI generation failed for ${componentName}: ${err.message}`);
+        }
       }
     }
 
-    // Flush to disk
-    updateTask('flush', 'processing');
-    for (const [filePath, content] of fileBuffer) {
-      await fs.mkdir(path.dirname(filePath), { recursive: true });
-      await fs.writeFile(filePath, content);
+    // 4. Signal READY for redirect
+    session.status = 'ready';
+    session.result = { slug, path: `/${slug}` };
+    console.log(`[Wizard] Session ${session.id} is READY. Waiting for redirect before flush...`);
+
+    // Wait 3 seconds to give the browser time to navigate away 
+    // before the filesystem changes trigger a Vite reload.
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    // 5. Flush
+    if (getTask('flush').status !== 'done') {
+      updateTask('flush', 'processing');
+      for (const [filePath, content] of session.fileBuffer) {
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+        await fs.writeFile(filePath, content);
+      }
+      updateTask('flush', 'done');
     }
-    updateTask('flush', 'done');
 
     session.status = 'complete';
-    session.result = { slug, path: `/${slug}` };
   } catch (err) {
     session.status = 'failed';
     session.error = err.message;
@@ -292,7 +289,5 @@ async function runGeneration(session, theme, mappings, sourceUrl) {
   }
 }
 
-const server = app.listen(port, () => {
-  console.log(`Dev backend listening at http://localhost:${port}`);
-});
+const server = app.listen(port, () => console.log(`Dev backend listening at http://localhost:${port}`));
 server.timeout = 300000;
