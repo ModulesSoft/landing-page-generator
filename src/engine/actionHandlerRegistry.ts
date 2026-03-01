@@ -109,6 +109,10 @@ const lazyHandlers: Record<string, () => Promise<ActionHandler>> = {
   cart: createLazyHandler('./actions/CartAction',
     ({ handleCart }) => (action, context) => handleCart(action as CartAction, context)),
 
+  // Wizard
+  wizard: createLazyHandler('./actions/WizardAction',
+    ({ handleWizard }) => (action, context, dispatch) => handleWizard(action, context, dispatch)),
+
   // API actions (all use the same handler)
   ...(() => {
     const apiHandler = createLazyHandler('./actions/ApiAction',

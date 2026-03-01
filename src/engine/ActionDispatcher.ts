@@ -22,6 +22,7 @@ const ACTION_SCHEMAS: Record<string, { req: string[], def?: Record<string, unkno
   conditional: { req: ['condition'] },
   delay: { req: ['duration'] },
   cart: { req: ['operation'] },
+  wizard: { req: ['wizardType'] },
   plugin: { req: ['name'] }
 };
 

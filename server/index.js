@@ -60,18 +60,29 @@ app.post('/api/dev/scrape', async (req, res) => {
     const pageInfo = await page.evaluate(() => {
       const getComputedStyle = (el) => window.getComputedStyle(el);
       
-      // Extract CSS Variables
-      const getVars = (el) => {
+      // Extract ALL CSS Variables from :root and body
+      const getAllVars = () => {
         const vars = {};
-        const style = el.getAttribute('style') || '';
-        const matches = style.matchAll(/--([\w-]+):\s*([^;]+)/g);
-        for (const m of matches) vars[m[1]] = m[2].trim();
+        const rootStyles = getComputedStyle(document.documentElement);
+        // In modern browsers, custom properties are enumerable in getComputedStyle
+        for (let i = 0; i < rootStyles.length; i++) {
+          const prop = rootStyles[i];
+          if (prop.startsWith('--')) {
+            vars[prop] = rootStyles.getPropertyValue(prop).trim();
+          }
+        }
+        // Also check body for locally defined vars
+        const bodyStyles = getComputedStyle(document.body);
+        for (let i = 0; i < bodyStyles.length; i++) {
+          const prop = bodyStyles[i];
+          if (prop.startsWith('--')) {
+            vars[prop] = bodyStyles.getPropertyValue(prop).trim();
+          }
+        }
         return vars;
       };
 
-      const rootVars = getVars(document.documentElement);
-      const bodyVars = getVars(document.body);
-      const allVars = { ...rootVars, ...bodyVars };
+      const allVars = getAllVars();
 
       // Better color extraction
       const colorCounts = {};
@@ -94,16 +105,23 @@ app.post('/api/dev/scrape', async (req, res) => {
         .map(e => e[0]);
 
       const bodyStyle = getComputedStyle(document.body);
+      const htmlStyle = getComputedStyle(document.documentElement);
       const h1Style = getComputedStyle(document.querySelector('h1') || document.body);
+
+      const getBestBackgroundColor = () => {
+        if (bodyStyle.backgroundColor && bodyStyle.backgroundColor !== 'rgba(0, 0, 0, 0)' && bodyStyle.backgroundColor !== 'transparent') return bodyStyle.backgroundColor;
+        if (htmlStyle.backgroundColor && htmlStyle.backgroundColor !== 'rgba(0, 0, 0, 0)' && htmlStyle.backgroundColor !== 'transparent') return htmlStyle.backgroundColor;
+        return getDominant(bgColorCounts)[0] || '#ffffff';
+      };
 
       return {
         title: document.title,
         theme: {
           colors: {
-            primary: allVars['color-primary'] || allVars['primary'] || getDominant(bgColorCounts)[0],
-            secondary: allVars['color-secondary'] || allVars['secondary'] || getDominant(bgColorCounts)[1],
-            background: bodyStyle.backgroundColor,
-            text: bodyStyle.color,
+            primary: allVars['--color-primary'] || allVars['--primary'] || allVars['color-primary'] || allVars['primary'] || getDominant(bgColorCounts)[0],
+            secondary: allVars['--color-secondary'] || allVars['--secondary'] || allVars['color-secondary'] || allVars['secondary'] || getDominant(bgColorCounts)[1],
+            background: getBestBackgroundColor(),
+            text: bodyStyle.color !== 'rgba(0, 0, 0, 0)' ? bodyStyle.color : '#000000',
           },
           fonts: {
             display: h1Style.fontFamily,
@@ -347,8 +365,22 @@ async function runGeneration(session, theme, mappings, sourceUrl) {
     // 2. Configs
     if (getTask('configs').status !== 'done') {
       updateTask('configs', 'processing');
+
+      // Normalize and include all extracted variables
+      const normalizedColors = {};
+      if (theme.vars) {
+        Object.entries(theme.vars).forEach(([key, value]) => {
+          // Remove -- prefix
+          let cleanKey = key.replace(/^--/, "");
+          // Remove color- prefix if it's there to avoid --color-color- duplication
+          cleanKey = cleanKey.replace(/^color-/, "");
+          normalizedColors[cleanKey] = value;
+        });
+      }
+
       const themeJson = {
         colors: { 
+          ...normalizedColors,
           primary: theme.colors?.primary || "#3b82f6", 
           secondary: theme.colors?.secondary || "#64748b", 
           background: theme.colors?.background || "#ffffff", 
@@ -361,7 +393,28 @@ async function runGeneration(session, theme, mappings, sourceUrl) {
         radius: { button: "0.5rem", card: "0.75rem" }
       };
       session.fileBuffer.set(path.join(landingPath, 'theme.json'), JSON.stringify(themeJson, null, 2));
-      session.fileBuffer.set(path.join(landingPath, 'flow.json'), JSON.stringify({ steps: [{ id: "home", type: "normal", layout: null }], initialStepId: "home" }, null, 2));
+
+      const flowJson = {
+        steps: [{ id: "home", type: "normal", layout: null }],
+        initialStepId: "home",
+        flows: {
+          desktop: {
+            seo: {
+              title: theme.title || "Landing Page",
+              description: `High-converting landing page for ${theme.title || "your product"}`
+            },
+            steps: { home: { layout: "desktop" } }
+          },
+          mobile: {
+            seo: {
+              title: theme.title || "Landing Page",
+              description: `High-converting landing page for ${theme.title || "your product"}`
+            },
+            steps: { home: { layout: "mobile" } }
+          }
+        }
+      };
+      session.fileBuffer.set(path.join(landingPath, 'flow.json'), JSON.stringify(flowJson, null, 2));
 
       const layout = {
         sections: mappings.map(m => {

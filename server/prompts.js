@@ -99,6 +99,7 @@ ARCHITECTURAL RULES:
 5. THEMING: Use CSS variables strictly (e.g., var(--color-primary), var(--font-body)).
 6. STYLING & ANIMATIONS: 
    - Use Tailwind CSS utility classes.
+   - DO NOT copy custom class names from the original HTML (e.g., 'logo-lander', 'hero-content', 'btn-primary'). Instead, map their visual effects to equivalent Tailwind classes (e.g., 'w-48 lg:w-60', 'flex flex-col', 'bg-primary text-white px-4 py-2').
    - For animations, prioritize Tailwind classes: 'animate-fade-in', 'animate-slide-up', 'animate-pulse', 'animate-bounce'. 
    - Use 'transition-all duration-300' for hover effects like 'hover:scale-105' or 'hover:shadow-lg'.
    - If the section had a 'has-animation' feature, ensure the generated component includes similar motion (e.g., elements fading in on mount or hovering).
