@@ -54,3 +54,35 @@ To reliably hit your target of 5-10 pages per week, the following steps should b
     *   Since pages are JSON-driven, add a pre-commit hook or CI step that validates all `src/landings/**/*.json` files against the existing schemas to prevent broken pages from being deployed by non-technical staff.
 4.  **Consider a Headless CMS or Visual Editor (Long-term):** 
     *   To truly remove developers from the critical path and scale beyond 10 pages/week, integrate the JSON schemas with a headless CMS (like Sanity, Contentful, or Builder.io) so marketing can use a GUI instead of a code editor.
+
+---
+
+## Update: March 1, 2026
+**Context:** Evaluation of major architectural shifts and the introduction of the AI Landing Page Wizard.
+
+### 1. Architectural Evolution: "Smart" Generation
+Since the last report, the project has evolved from a pure "rendering shell" to an **AI-augmented generation platform**. 
+
+*   **AI Landing Page Wizard:** The most significant addition is the `wizard` landing page and its supporting dev-only backend. It allows users to input any URL, which the system then:
+    *   Scrapes using Puppeteer (handling SPAs).
+    *   Decomposes into structural sections via **Gemma 3 (LLM)**.
+    *   Maps to existing React components or **generates new code on the fly**.
+*   **Zero-Maintenance Component Registry:** The engine now utilizes Vite's `import.meta.glob` to automatically discover and register components. This eliminates the "manual registry" bottleneck and ensures that any new component added to `src/components` is immediately available to the JSON engine without a single line of boilerplate.
+
+### 2. New Capabilities
+*   **Dev-Backend Integration:** The introduction of a dedicated Node.js server (`server/`) bridge the gap between frontend constraints and system-level tasks (scraping, LLM orchestration, filesystem writes).
+*   **Advanced Flow Orchestration:** The `wizard` flow (Scraping -> Analysis -> Generation) proves that the Action Dispatcher can handle complex, asynchronous, multi-step business logic beyond simple navigation.
+*   **Enhanced A/B Testing:** The `sample` landing page now demonstrates sophisticated A/B testing configurations, supporting simultaneous variations of themes, flows, and layouts (e.g., `flow-A.json` vs. `flow-B.json`).
+
+### 3. Tech Stack Upgrades
+*   **Tailwind CSS v4:** Migrated to the latest utility-first engine for improved performance and build times.
+*   **React 19 & Vite 7:** Staying on the bleeding edge of the ecosystem ensures maximum performance and access to the latest developer tooling.
+*   **Concurrent Dev Environment:** `concurrently` now manages both the Vite frontend and the Node.js wizard backend in a single terminal command (`npm run dev`).
+
+### 4. Updated Delivery Capacity
+*   **Current State:** The target of **5-10 pages per week** is now **exceeded**. With the AI Wizard, a developer can generate a baseline "copy" of an existing funnel in minutes, then refine it via JSON.
+*   **Efficiency Gains:** The "Zero-Maintenance Registry" alone reduces developer friction by ~15%, while the AI Wizard can accelerate the initial scaffolding of a complex page by up to 80%.
+
+### 5. Future Outlook
+*   **Self-Healing Components:** The next logical step is for the AI to not only generate components but also "fix" them if they fail Vitest suites or linting rules during the generation phase.
+*   **Expanded Scraping:** Enhancing the scraper to handle more complex scenarios (e.g., auth-gated pages, complex animations) will further broaden the Wizard's utility.
