@@ -52,6 +52,7 @@ OUTPUT FORMAT (Strict JSON):
       "sectionId": "original-id",
       "suggestedComponent": "RegistryKey",
       "props": { ... },
+      "htmlSnippet": "THE ORIGINAL HTML SNIPPET FOR THIS SECTION",
       "actions": { "actionName": { actionObject } },
       "confidence": 0.0 to 1.0,
       "isNew": boolean
@@ -111,15 +112,18 @@ import type { ActionDispatcher, Action } from '../../engine/ActionDispatcher';
 import { useActionDispatch } from '../../engine/hooks/useActionDispatch';
 `;
 
-export const getGenerateComponentUserPrompt = (componentName, suggestedType, props) => `
+export const getGenerateComponentUserPrompt = (componentName, suggestedType, props, html) => `
 Generate a React component named '${componentName}'.
-Context:
-- Component Type: ${suggestedType}
-- Data (passed as props): ${JSON.stringify(props)}
+
+CONTEXT:
+- Suggested Base Type: ${suggestedType}
+- Target Data Structure: ${JSON.stringify(props)}
+- Original HTML Structure: ${html}
 
 CRITICAL: 
-- Use the data from the list above directly as 'props' (e.g., 'props.title', 'props.images').
-- Do NOT look for this content inside 'props.state'.
+- Use the 'Target Data Structure' directly as 'props' (e.g., 'props.title', 'props.images').
+- Use the 'Original HTML Structure' to inform your JSX layout, element nesting, and specific Tailwind classes to match the design 1:1.
+- Do NOT look for content inside 'props.state'.
 - The component must look professional and include a primary CTA button using the Action system.
 Respond ONLY with a JSON object: { "code": "full tsx code here" }
 `;

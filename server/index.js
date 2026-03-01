@@ -251,7 +251,7 @@ async function runGeneration(session, theme, mappings, sourceUrl) {
         const componentPath = path.join(PROJECT_ROOT, 'src', 'components', 'wizard', `${componentName}.tsx`);
         
         try {
-          const codeResponse = await limiter.schedule(() => gemini.generateJSON(GENERATE_COMPONENT_SYSTEM_PROMPT, getGenerateComponentUserPrompt(componentName, m.suggestedComponent, m.props)));
+          const codeResponse = await limiter.schedule(() => gemini.generateJSON(GENERATE_COMPONENT_SYSTEM_PROMPT, getGenerateComponentUserPrompt(componentName, m.suggestedComponent, m.props, m.htmlSnippet)));
           session.fileBuffer.set(componentPath, codeResponse.code);
           updateTask(taskId, 'done');
         } catch (err) {
