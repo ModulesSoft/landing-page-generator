@@ -87,20 +87,22 @@ ARCHITECTURAL RULES:
 2. ACTIONS: Use 'dispatcher' and 'actions' from props for all interactions.
    - NEVER pass an action object directly to an event listener (e.g., <button onClick={props.actions.submit}> is WRONG).
    - ALWAYS use 'useActionDispatch' hook for CTAs:
-     const handleClick = useActionDispatch(dispatcher, actions?.submit);
-     <button onClick={handleClick}>
+     const { loading, dispatchWithLoading } = useActionDispatch(dispatcher);
+     <button onClick={() => dispatchWithLoading('submit', actions?.submit)} disabled={loading['submit']}>
 3. REACT COMPLIANCE & SVG RULES: 
    - Use camelCase for ALL HTML/SVG attributes. Hyphenated attributes ARE INVALID in React.
    - SVG MAPPINGS: 'stroke-linecap' -> 'strokeLinecap', 'stroke-width' -> 'strokeWidth', 'stroke-linejoin' -> 'strokeLinejoin', 'fill-rule' -> 'fillRule', 'clip-rule' -> 'clipRule', 'stop-color' -> 'stopColor', 'stop-opacity' -> 'stopOpacity'.
    - COMMON MAPPINGS: 'class' -> 'className', 'tabindex' -> 'tabIndex', 'for' -> 'htmlFor'.
    - Handle missing images gracefully: {props.image ? <img src={props.image} /> : null}. NEVER pass empty strings to 'src'.
    - Ensure 'alt' tags are descriptive or empty strings for decorative images, never omitted.
-4. LOADING STATES: useActionDispatch handles loading state automatically if the action is asynchronous.
+4. LOADING STATES: useActionDispatch's 'loading' object tracks async operations. Use it for button spinners or disabled states.
 5. THEMING: Use CSS variables strictly (e.g., var(--color-primary), var(--font-body)).
 6. STYLING & ANIMATIONS: 
    - Use Tailwind CSS utility classes.
    - DO NOT copy custom class names from the original HTML (e.g., 'logo-lander', 'hero-content', 'btn-primary'). Instead, map their visual effects to equivalent Tailwind classes (e.g., 'w-48 lg:w-60', 'flex flex-col', 'bg-primary text-white px-4 py-2').
-   - For animations, prioritize Tailwind classes: 'animate-fade-in', 'animate-slide-up', 'animate-pulse', 'animate-bounce'. 
+   - For animations, prioritize Tailwind classes: 'animate-fade-in', 'animate-slide-up', 'animate-pulse', 'animate-bounce', 'animate-ping'.
+   - If features include 'animation-pulse', apply 'animate-pulse' to relevant highlights or the whole component.
+   - If features include 'animation-ping', apply a ping effect (e.g., for notification badges or emphasis).
    - Use 'transition-all duration-300' for hover effects like 'hover:scale-105' or 'hover:shadow-lg'.
    - If the section had a 'has-animation' feature, ensure the generated component includes similar motion (e.g., elements fading in on mount or hovering).
 7. EXPORT: Must be a default export.

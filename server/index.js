@@ -205,8 +205,18 @@ app.post('/api/dev/scrape', async (req, res) => {
           if (htmlStr.includes('accordion') || htmlStr.includes('collapse')) {
             features.push('has-accordion');
           }
-          if (style.animationName !== 'none' || style.transitionProperty !== 'none') {
+          
+          // Better animation detection including Tailwind classes
+          if (
+            style.animationName !== 'none' || 
+            style.transitionProperty !== 'none' ||
+            classStr.includes('animate-') ||
+            classStr.includes('pulse') ||
+            classStr.includes('ping')
+          ) {
             features.push('has-animation');
+            if (classStr.includes('pulse')) features.push('animation-pulse');
+            if (classStr.includes('ping')) features.push('animation-ping');
           }
 
           results.push({
