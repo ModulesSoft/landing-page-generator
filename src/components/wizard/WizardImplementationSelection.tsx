@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useActionDispatch } from '../../engine/hooks/useActionDispatch';
 import type { ActionDispatcher } from '../../engine/ActionDispatcher';
 
@@ -23,12 +23,14 @@ const WizardImplementationSelection: React.FC<WizardImplementationSelectionProps
   const { dispatchWithLoading } = useActionDispatch(dispatcher);
   const analysisResult = state?.wizard_analysisResult;
   const [mappings, setMappings] = useState<Mapping[]>([]);
+  const [prevAnalysisResult, setPrevAnalysisResult] = useState(analysisResult);
 
-  useEffect(() => {
+  if (analysisResult !== prevAnalysisResult) {
+    setPrevAnalysisResult(analysisResult);
     if (analysisResult?.mappings) {
       setMappings(analysisResult.mappings.map((m: any) => ({ ...m, selected: true })));
     }
-  }, [analysisResult]);
+  }
 
   const toggleSelection = (id: string) => {
     setMappings(prev => prev.map(m => 

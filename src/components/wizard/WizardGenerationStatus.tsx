@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import type { ActionDispatcher } from '../../engine/ActionDispatcher';
 
 interface Task {
@@ -56,7 +56,7 @@ const WizardGenerationStatus: React.FC<WizardGenerationStatusProps> = ({
   }, []);
 
   // Poll status helper
-  const pollStatus = (sessionId: string) => {
+  const pollStatus = useCallback((sessionId: string) => {
     if (pollInterval.current) clearInterval(pollInterval.current);
     
     pollInterval.current = setInterval(async () => {
@@ -88,9 +88,9 @@ const WizardGenerationStatus: React.FC<WizardGenerationStatusProps> = ({
         if (pollInterval.current) clearInterval(pollInterval.current);
       }
     }, 1000);
-  };
+  }, [dispatcher]);
 
-  const startGeneration = async () => {
+  const startGeneration = useCallback(async () => {
     if (!dispatcher) return;
     
     try {
@@ -113,7 +113,7 @@ const WizardGenerationStatus: React.FC<WizardGenerationStatusProps> = ({
     } catch (err) {
       console.error('Failed to start generation:', err);
     }
-  };
+  }, [dispatcher, analysisResult.theme, finalSelection, scrapeResult.sourceUrl, sessionIdInState, pollStatus]);
 
   // Initial call to start or resume generation
   useEffect(() => {
@@ -128,7 +128,7 @@ const WizardGenerationStatus: React.FC<WizardGenerationStatusProps> = ({
         startGeneration();
       }
     }
-  }, [finalSelection, sessionIdInState]);
+  }, [finalSelection, sessionIdInState, session, pollStatus, startGeneration]);
 
   useEffect(() => {
     return () => {

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useActionDispatch } from '../../engine/hooks/useActionDispatch';
 import type { ActionDispatcher } from '../../engine/ActionDispatcher';
 
@@ -19,7 +19,7 @@ const WizardAnalysisResult: React.FC<WizardAnalysisResultProps> = ({
   const analysisResult = state?.wizard_analysisResult;
   const analysisError = state?.wizard_analysisError;
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = useCallback(async () => {
     // Unique key for this specific analysis task
     const lockKey = `analyze-${scrapeResult?.sourceUrl}`;
     
@@ -34,14 +34,14 @@ const WizardAnalysisResult: React.FC<WizardAnalysisResultProps> = ({
       stateKey: 'wizard_analysisResult',
       errorStateKey: 'wizard_analysisError'
     } as any);
-  };
+  }, [dispatcher, scrapeResult, dispatchWithLoading]);
 
   useEffect(() => {
     const lockKey = `analyze-${scrapeResult?.sourceUrl}`;
     if (scrapeResult && !analysisResult && !analysisError && !loading.analyze && !executionLock.has(lockKey)) {
       handleAnalyze();
     }
-  }, [scrapeResult, analysisResult, analysisError, loading.analyze]);
+  }, [scrapeResult, analysisResult, analysisError, loading.analyze, handleAnalyze]);
 
   const handleNext = () => {
     if (dispatcher) {
