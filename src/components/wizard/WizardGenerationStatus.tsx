@@ -10,7 +10,7 @@ interface Task {
 
 interface GenerationSession {
   id: string;
-  status: 'processing' | 'complete' | 'failed';
+  status: 'processing' | 'ready' | 'complete' | 'failed';
   tasks: Task[];
   result?: { slug: string; path: string };
   error?: string;
@@ -67,6 +67,13 @@ const WizardGenerationStatus: React.FC<WizardGenerationStatusProps> = ({
         
         const data: GenerationSession = await response.json();
         setSession(data);
+
+        if (data.status === 'ready' && data.result?.path) {
+          console.log(`[Wizard] Generation ready! Redirecting to ${data.result.path}...`);
+          if (pollInterval.current) clearInterval(pollInterval.current);
+          window.location.href = data.result.path;
+          return;
+        }
 
         if (data.status === 'complete' || data.status === 'failed') {
           if (pollInterval.current) clearInterval(pollInterval.current);
