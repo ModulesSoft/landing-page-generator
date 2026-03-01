@@ -19,7 +19,7 @@ git clone <repo-url>
 cd landing-page-factory
 npm install
 
-# Start development server
+# Start development environment (Frontend + AI Backend)
 npm run dev
 ```
 
@@ -29,7 +29,15 @@ Open `http://localhost:5173` in your browser.
 
 ## 3. Creating Your First Landing Page
 
-### Option A: Using the Scaffold Script (Recommended)
+### Option A: Using the AI Wizard (Fastest)
+
+1.  Start the dev environment with `npm run dev`.
+2.  Navigate to `http://localhost:5173/wizard`.
+3.  Enter the URL of a landing page you want to replicate.
+4.  Follow the steps to analyze, select, and generate the code.
+5.  Your new page will be available under `src/landings/<slug>`.
+
+### Option B: Using the Scaffold Script
 
 ```bash
 npm run scaffold my-awesome-page

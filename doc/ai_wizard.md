@@ -1,8 +1,8 @@
 # AI Landing Page Wizard
 
-Version: 1.0
-Last updated: 2026-02-20
-Status: Draft Design
+Version: 1.1
+Last updated: 2026-03-01
+Status: Implemented ✅
 
 ## Purpose
 The AI Landing Page Wizard is a development tool designed to automate the initial creation of marketing funnels by analyzing existing web pages and generating corresponding React components and JSON configurations for the Landing Page Engine.
@@ -34,7 +34,7 @@ The AI Landing Page Wizard is a development tool designed to automate the initia
 
 ### 5. Automated Code Generation
 - **React Components:** For missing sections, the AI generates a `.tsx` file following the project's patterns (Tailwind, CSS Variables, Action Dispatcher).
-- **Registry Update:** Automatically append new components to `src/registry/ComponentMap.ts`.
+- **Registry Update:** Automatically discovered by `src/registry/ComponentMap.ts` using Vite's `import.meta.glob`.
 - **JSON Configuration:** Generate `theme.json`, `flow.json`, and layouts (`desktop.json`/`mobile.json`) in a new folder under `src/landings/`.
 
 ## Technical Requirements
@@ -62,3 +62,11 @@ To keep implementation lightweight, the dev-only backend will provide the follow
 ## Security & Constraints
 - **Dev-Only:** The Wizard route/component and backend endpoints must be gated by `process.env.NODE_ENV === 'development'`.
 - **Credential Hygiene:** API keys for LLM services must be stored in local `.env` files, never committed.
+
+## 7. Recent Features (March 2026)
+
+### Session Persistence & Reset
+The wizard uses the Engine's state management to persist progress across reloads. A **"Reset Wizard"** button in `WizardLayout` allows users to clear all `wizard_*` state keys and restart the flow from the initial URL input step.
+
+### State Flattening
+To simplify engine state management, all wizard results are stored as top-level keys in the engine state (e.g., `wizard_scrapeResult`, `wizard_analysisResult`). This avoids deep nesting issues with `setState` merge behavior.

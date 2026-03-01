@@ -134,6 +134,29 @@ Page footer with links and info.
 
 ---
 
+### Wizard Components
+Specialized components for the AI Landing Page Wizard.
+
+#### WizardLayout
+The main container for the multi-step wizard, including progress tracking and session reset.
+
+#### WizardUrlInput
+Initial step where the user provides the source URL.
+
+#### WizardScraperStatus
+Visual feedback for the automated scraping process.
+
+#### WizardAnalysisResult
+Displays AI-decomposed sections from the source page.
+
+#### WizardImplementationSelection
+Interface for mapping sections to engine components.
+
+#### WizardGenerationStatus
+Progress tracker for automated code and config generation.
+
+---
+
 ### GridSection
 Flexible grid layout.
 

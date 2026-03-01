@@ -5,6 +5,7 @@ A JSON-driven landing page generator built with React, TypeScript, and Vite. Cre
 ## ✨ Key Features
 
 - **🚀 Component-Based**: Reusable React components auto-discovered from `src/components`
+- **🤖 AI Landing Page Wizard**: Generate landing pages from any URL using AI analysis and automated scraping
 - **📝 JSON-Driven**: Define content, styling, and behavior entirely in JSON
 - **🎨 CSS Custom Properties**: Centralized theming system for consistent visuals
 - **📱 Responsive Layouts**: Separate mobile and desktop layouts for optimal UX
@@ -35,7 +36,8 @@ npm install
 npm run dev
 ```
 
-Visit `http://localhost:5173` to see your first landing page.
+Visit `http://localhost:5173` to see the engine.
+Visit `http://localhost:5173/wizard` to use the AI Wizard.
 
 **Creating your first page?** → See [Getting Started](docs/GETTING_STARTED.md)
 
@@ -63,7 +65,9 @@ src/landings/my-page/
 ## 🛠️ Development
 
 ```bash
-npm run dev              # Start dev server (port 5173)
+npm run dev              # Start dev server (Vite) + AI backend (Node.js)
+npm run dev:client       # Start only the frontend
+npm run dev:server       # Start only the AI/Scraper backend
 npm run build            # Production build
 npm run lint             # ESLint check
 npm run test:run         # Run tests
