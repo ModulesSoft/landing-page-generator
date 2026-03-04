@@ -15,20 +15,21 @@ describe('NavigateAction', () => {
   });
 
   it('should call context.navigate with URL', async () => {
-    const action = { type: 'navigate' as const, url: '/checkout' };
+    // step IDs (no leading slash) are handled by context.navigate
+    const action = { type: 'navigate' as const, url: 'checkout' };
 
     const result = await handleNavigate(action, mockContext);
 
-    expect(mockContext.navigate).toHaveBeenCalledWith('/checkout', undefined);
+    expect(mockContext.navigate).toHaveBeenCalledWith('checkout', undefined);
     expect(result.success).toBe(true);
   });
 
   it('should call context.navigate with replace flag', async () => {
-    const action = { type: 'navigate' as const, url: '/success', replace: true };
+    const action = { type: 'navigate' as const, url: 'success', replace: true };
 
     const result = await handleNavigate(action, mockContext);
 
-    expect(mockContext.navigate).toHaveBeenCalledWith('/success', true);
+    expect(mockContext.navigate).toHaveBeenCalledWith('success', true);
     expect(result.success).toBe(true);
   });
 
@@ -38,7 +39,7 @@ describe('NavigateAction', () => {
       throw error;
     });
 
-    const action = { type: 'navigate' as const, url: '/checkout' };
+    const action = { type: 'navigate' as const, url: 'checkout' };
     const result = await handleNavigate(action, mockContext);
 
     expect(result.success).toBe(false);
@@ -46,11 +47,24 @@ describe('NavigateAction', () => {
   });
 
   it('should handle replace: false explicitly', async () => {
-    const action = { type: 'navigate' as const, url: '/step2', replace: false };
+    const action = { type: 'navigate' as const, url: 'step2', replace: false };
 
     const result = await handleNavigate(action, mockContext);
 
-    expect(mockContext.navigate).toHaveBeenCalledWith('/step2', false);
+    expect(mockContext.navigate).toHaveBeenCalledWith('step2', false);
+    expect(result.success).toBe(true);
+  });
+
+  it('should redirect for URLs starting with slash', async () => {
+    // prepare a mutable location object like RedirectAction tests
+    delete (window as any).location;
+    (window as any).location = { href: '' };
+
+    const action = { type: 'navigate' as const, url: '/checkout' };
+    const result = await handleNavigate(action, mockContext);
+
+    expect(window.location.href).toBe('/checkout');
+    expect(mockContext.navigate).not.toHaveBeenCalled();
     expect(result.success).toBe(true);
   });
 
