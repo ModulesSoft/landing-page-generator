@@ -42,7 +42,7 @@ function App() {
   const slug = window.location.pathname
     .split('/')
     .filter(Boolean)
-    .shift() || 'sample';
+    .shift() || 'main';
 
   return (
     <ErrorBoundary>
