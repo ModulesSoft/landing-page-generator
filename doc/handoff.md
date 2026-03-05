@@ -41,6 +41,9 @@
 - Made API response storage opt-in via `stateKey` (success) and `errorStateKey` (error) to give developers full control over when data persists to state.
 ## Changes Since Last Session
 - src/components/wrapper/Wrapper.tsx (New): Generic container for nested sections.
+- src/components/navbar/Navbar.tsx (New): alternate sticky navigation bar variant derived from marketing HTML snippet.
+- src/components/navbar/Navbar.stories.tsx (New): stories demonstrating logo types, menu and CTA.
+- src/__tests__/components/Navbar.test.tsx (New): unit tests for the new Navbar variant.
 - src/engine/hooks/useComponentLifecycle.ts (New): Hook for executing declarative lifecycle actions.
 - src/engine/utils/SectionWithLifecycle.tsx (New): Internal wrapper component for applying lifecycle hooks.
 - src/engine/utils/actionUtils.ts (New): Normalization utility for ActionOrArray support.

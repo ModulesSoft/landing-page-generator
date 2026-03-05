@@ -212,6 +212,7 @@ Your page is live at `http://localhost:5173/my-awesome-page` as you edit.
 | CheckoutForm | Customer information form |
 | Confirmation | Thank you / confirmation page |
 | Footer | Footer section |
+| ProductShowcase | Product promotional section with gallery and pricing |
 | GridSection | Responsive grid |
 | HeatmapRecorder | User behavior tracking |
 | CustomHTML | Render custom HTML |

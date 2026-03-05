@@ -233,12 +233,32 @@ This document tracks the implementation of the JSON-Driven Landing Page Engine. 
 **Acceptance criteria:**
 
 - Navbar component supports logo, menu items, and CTA button from JSON.
+- ProductShowcase component added for promotional sections with gallery, ratings, pricing options, and accordions.
 - Sticky header option with scroll behavior.
 - Mobile hamburger menu with slide-out drawer.
 - Supports action dispatcher for navigation and button clicks.
 - CSS variables for all colors and spacing.
 
 **Evidence:** Navigation.tsx created with sticky header, mobile menu, action dispatcher integration, lazy-loaded in ComponentMap, build succeeds.
+
+### T-023 — Alternate Navbar variant
+
+**Owner:** AI Assistant
+
+**Status:** ✅ 100% | Dates: started 2026-03-05, completed 2026-03-05
+
+**Scope:** scope.md § In Scope (Component Registry)
+
+**Design:** derived from marketing HTML snippet; generic props mirroring Navigation design patterns.
+
+**Acceptance criteria:**
+
+- New `Navbar` component renders a sticky header with logo area, configurable menu links, CTA button and mobile toggle.
+- All hardcoded text/links replaced with props; supports hrefs and action dispatcher callbacks.
+- Includes corresponding Storybook stories and unit tests.
+- Original `Navigation` component left untouched to allow multiple design variants.
+
+**Evidence:** `Navbar.tsx`, `Navbar.stories.tsx` and `Navbar.test.tsx` added; tests pass in isolation; component automatically discovered by registry.
 
 ---
 

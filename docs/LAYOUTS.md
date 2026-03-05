@@ -517,6 +517,7 @@ Common ones:
 - **Accordion** — FAQs
 - **CheckoutForm** — Customer form
 - **Products** — Product showcase
+- **ProductShowcase** — Detailed product promotion section with options
 - **Confirmation** — Thank you page
 - **Footer** — Bottom section
 
