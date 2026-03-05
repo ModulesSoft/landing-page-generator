@@ -59,7 +59,25 @@ function MyComponent({ dispatcher, actions }) {
 
 ### Hero
 Marketing headline section with image gallery and CTAs.
+### BenefitsSection
+Comprehensive informational block combining:
 
+- a heading/subheading narrative
+- grid of benefit cards (icon/title/description)
+- optional product bundle promotions with pricing and CTAs
+- science/research background box
+- FAQ list
+- final call‑to‑action button
+
+Props mirror the point model in the production HTML snippet and support
+rich content via React nodes. Use when you need a single self‑contained
+"Why us" / "How it works" section on a landing page.
+
+**Props:**
+`id`, `heading`, `subheading`, `benefits[]`, `bundles[]`, `science`, `faqs[]`,
+`cta`, `backgroundImage`, `dispatcher`.
+
+---
 **Props:** `title`, `subtitle`, `description`, `badge`, `backgroundImage`, `backgroundVideo`, `images[]`, `price`, `originalPrice`, `colors[]`  
 **Actions:** `primary`, `secondary`
 

@@ -16,6 +16,7 @@ describe('ComponentMap (auto-discovery)', () => {
     expect(ComponentMap.Testimonials).toBeDefined();
     expect(ComponentMap.ProductShowcase).toBeDefined();
     expect(ComponentMap.TrustBar).toBeDefined();
+    expect(ComponentMap.BenefitsSection).toBeDefined();
   });
 
   it('should not create unexpected keys for non-component files', () => {

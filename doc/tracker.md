@@ -276,6 +276,25 @@ This document tracks the implementation of the JSON-Driven Landing Page Engine. 
 - Storybook story includes sample lucide SVG icons matching the original markup.
 - Unit tests verify rendering, empty-case, and wrapper classes.
 
+### T-025 — BenefitsSection component
+
+**Owner:** AI Assistant
+
+**Status:** ✅ 100% | Dates: started 2026-03-05, completed 2026-03-05
+
+**Scope:** scope.md § In Scope (Component Registry)
+
+**Design:** large informational section including benefits grid, bundle promos, research callouts, FAQ panel, and CTA button as per HTML sample.
+
+**Acceptance criteria:**
+
+- Renders heading/subheading with optional background image overlay.
+- Benefits grid accepts icon/title/description items with staggered animation delays.
+- Optional bundles section supports image, badge, inclusions, pricing, CTA buttons.
+- Science block and FAQ list render correctly when provided.
+- CTA at bottom dispatches actions via dispatcher hook.
+- Storybook story shows full sample from snippet; unit tests cover each subsection and action dispatch.
+
 **Evidence:** `Navbar.tsx`, `Navbar.stories.tsx` and `Navbar.test.tsx` added; tests pass in isolation; component automatically discovered by registry.
 
 ---
