@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import React from 'react';
+
 import TrustBar from './TrustBar';
 import type { TrustBarItem } from './TrustBar';
 

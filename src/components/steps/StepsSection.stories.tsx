@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import React from 'react';
 import StepsSection from './StepsSection';
-import type { StepItem, ImageBlock } from './StepsSection';
+import type { StepItem } from './StepsSection';
 
 const meta: Meta<typeof StepsSection> = {
   title: 'Components/StepsSection',

@@ -21,6 +21,7 @@ describe('ComponentMap (auto-discovery)', () => {
     expect(ComponentMap.StepsSection).toBeDefined();
     expect(ComponentMap.WhyChooseSection).toBeDefined();
     expect(ComponentMap.SocialProof).toBeDefined();
+    expect(ComponentMap.FaqSection).toBeDefined();
   });
 
   it('should not create unexpected keys for non-component files', () => {

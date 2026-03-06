@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import React from 'react';
 import ProductShowcase from './ProductShowcase';
 import type { ProductShowcaseProps } from './ProductShowcase';
 
