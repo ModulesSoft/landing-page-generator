@@ -102,6 +102,12 @@ const Navbar: React.FC<NavbarProps> = ({
                 role={logo.onClick ? 'button' : undefined}
                 tabIndex={logo.onClick ? 0 : undefined}
                 onClick={handleLogoClick}
+                onKeyDown={e => {
+                  if (logo.onClick && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    handleLogoClick();
+                  }
+                }}
                 className="flex-shrink-0 cursor-pointer"
               >
                 {logo.image ? (

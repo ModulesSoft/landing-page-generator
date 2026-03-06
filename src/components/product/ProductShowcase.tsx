@@ -205,10 +205,18 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({
             {priceOptions.length > 0 && (
               <div id="pricing" className="space-y-6">
                 {priceOptions.map(option => (
-                  <label
+                  <div
                     key={option.id}
-                    htmlFor={option.id}
+                    role="radio"
+                    tabIndex={0}
+                    aria-checked={selectedOptionId === option.id}
                     onClick={() => handleOptionSelect(option.id)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleOptionSelect(option.id);
+                      }
+                    }}
                     className={`relative flex items-start gap-3 p-4 cursor-pointer transition-all ${
                       selectedOptionId === option.id ? 'bg-primary/5 border-[3px] border-primary shadow-xl scale-[1.01] rounded-xl' : 'border-2 border-border bg-background hover:border-primary/50 rounded-xl'
                     }`}
@@ -232,7 +240,7 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({
                       </div>
                       {option.price && <div className="flex flex-col items-end gap-0.5"><span className="font-bold text-foreground text-2xl">{option.price}</span></div>}
                     </div>
-                  </label>
+                  </div>
                 ))}
               </div>
             )}
