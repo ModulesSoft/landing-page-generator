@@ -1050,3 +1050,21 @@ This document tracks the implementation of the JSON-Driven Landing Page Engine. 
 | 2026-02-20 | Increased API timeout to 60s for AI analyze and generate steps to prevent premature fetch cancellation. | AI Assistant |
 | 2026-02-20 | Prevented duplicate API calls in Wizard components by adding a useRef guard to useEffect hooks. | AI Assistant |
 | 2026-02-20 | Implemented robust module-level execution locks in Wizard components to prevent duplicate AI calls across StrictMode remounts. | AI Assistant |
+
+### T-0YY — Enhance Footer component to support multi-column layout
+
+**Owner:** AI Assistant
+
+**Status:** ✅ 100% | Dates: 2026-03-06
+
+**Scope:** adapt existing Footer.tsx to render marketing footer HTML. Added  prop for arbitrary groups, logo description, and . Maintained backwards compatibility with /.
+
+**Acceptance criteria:**
+-  extended with columns and footerNote.
+- Rendering logic updated accordingly and unit tests added.
+- Storybook stories reflect new design and legacy behaviour.
+- ComponentMap still registers Footer.
+- Documentation updated.
+
+**Evidence:** updated props/types in Footer.tsx; new test file passing; stories compile; docs/COMPONENTS.md lists functionality.
+

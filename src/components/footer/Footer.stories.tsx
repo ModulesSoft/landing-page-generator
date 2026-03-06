@@ -1,46 +1,61 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import Footer from './Footer';
+import type { FooterProps } from './Footer';
 
 const meta: Meta<typeof Footer> = {
   title: 'Components/Footer',
   component: Footer,
-  parameters: {
-    layout: 'fullscreen',
-  },
+  parameters: { layout: 'fullscreen' },
   argTypes: {
     logo: { control: 'object' },
-    newsletter: { control: 'object' },
-    links: { control: 'object' },
+    columns: { control: 'object' },
     copyright: { control: 'text' },
+    footerNote: { control: 'text' },
   },
 };
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const sampleLinks = [
-  { label: 'About', onClick: { type: 'navigate', url: '/about' } },
-  { label: 'Contact', onClick: { type: 'navigate', url: '/contact' } },
-  { label: 'Privacy Policy', onClick: { type: 'navigate', url: '/privacy' } },
-  { label: 'Terms of Service', onClick: { type: 'navigate', url: '/terms' } },
+const sampleColumns: FooterProps['columns'] = [
+  {
+    heading: 'Quick Links',
+    items: [
+      { label: 'Benefits' },
+      { label: 'How It Works' },
+      { label: 'FAQs' },
+      { label: 'Shop Now' },
+    ],
+  },
+  {
+    heading: 'Customer Support',
+    items: [
+      { label: '30-Day Money-Back Guarantee', plain: true },
+      { label: 'Free Domestic Shipping', plain: true },
+      { label: 'Made in FDA-Registered Facility', plain: true },
+      { label: 'Third-Party Tested', plain: true },
+    ],
+  },
+];
+
+// legacy flat link set used in some stories
+const sampleLinks: FooterProps['links'] = [
+  { label: 'About', href: '#' },
+  { label: 'Contact', href: '#' },
+  { label: 'Privacy Policy', href: '#' },
+  { label: 'Terms of Service', href: '#' },
 ];
 
 export const Default: Story = {
   args: {
     logo: {
-      text: 'MyBrand',
+      image: 'https://via.placeholder.com/150x50?text=Logo',
+      alt: 'Company logo',
+      description: 'Premium creatine gummies designed to help you build strength, boost energy, and feel amazing.',
     },
-    newsletter: {
-      title: 'Stay Updated',
-      description: 'Subscribe to our newsletter for the latest updates and offers.',
-      placeholder: 'Enter your email',
-      submitButton: {
-        label: 'Subscribe',
-        onClick: { type: 'analytics', event: 'newsletter_signup' },
-      },
-    },
-    links: sampleLinks,
-    copyright: '© 2024 MyBrand. All rights reserved.',
+    columns: sampleColumns,
+    copyright: '© 2025 All rights reserved.',
+    footerNote: 'These statements have not been evaluated by the FDA. This product is not intended to diagnose, treat, cure, or prevent any disease.',
   },
 };
 
