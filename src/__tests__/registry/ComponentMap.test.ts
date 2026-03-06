@@ -19,6 +19,7 @@ describe('ComponentMap (auto-discovery)', () => {
     expect(ComponentMap.BenefitsSection).toBeDefined();
     expect(ComponentMap.GummyAdvantages).toBeDefined();
     expect(ComponentMap.StepsSection).toBeDefined();
+    expect(ComponentMap.WhyChooseSection).toBeDefined();
   });
 
   it('should not create unexpected keys for non-component files', () => {
