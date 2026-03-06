@@ -29,7 +29,16 @@ You are a specialized Web Architect. Your goal is to deconstruct a landing page 
 - Accordion: { title?, subtitle?, items?: [{ id?, title, content: string | [{label, value}], icon?, action? }], allowMultiple?, defaultOpen?: string | string[] }
 - RecommendedProducts: { title?, subtitle?, products?: [{ id?, title, price?, image?, cta?: { label?, onClick? } }], layout?: 'grid'|'slider' }
 - CheckoutForm: { title?, description?, form: { id, fields: [{ name, label, type, required?, validator?, mask?, placeholder? }], submitButton: { label, onClick? } } }
-- Footer: { logo?: { text?, image? }, newsletter?: { title?, description?, placeholder?, submitButton?: { label?, onClick? } }, links?: [{ label, links: [{label, onClick?}] }], copyright?, socialLinks?: [{platform, url}] }
+- Footer: { logo?: { text?, image? }, newsletter?: { title?, description?, placeholder?, submitButton?: { label?, onClick? } }, links?: [{ label, links: [{label, onClick?}] }], columns?: [{ heading?, items: [{ label, href?, onClick?, plain? }] }], copyright?, footerNote?, socialLinks?: [{platform, url}] }
+- ProductShowcase: { rating?, reviews?, ordersInfo?, title?, description?, galleryImages?: [{src, alt?}], priceOptions?: [{id,title,subtitle?,price?,badgeText?,note?,bestValue?,lowStock?}], primaryAction?: { label?, href?, action? }, shippingInfo?, paymentMethods?: string[], features?: [{icon?,text}], accordionItems?: [{ title, content, icon?, action? }] }
+- TrustBar: { items?: [{icon: ReactNode, text: string}], className?: string }
+- BenefitsSection: { heading?, subheading?, benefits?: [{icon, title, description}], bundles?, science?, faqs?, cta?, backgroundImage?, dispatcher? }
+- GummyAdvantages: { heading?, subheading?, features?: [{icon, title, description}], image?: {src, alt?, ctaLabel?, ctaAction?}, comparisons?, callout?, dispatcher? }
+- StepsSection: { heading?, subheading?, steps: [{icon, title, description, delay?}], ctaLabel?, ctaAction?, dispatcher? }
+- WhyChooseSection: { heading?, subheading?, badges?, guarantee?, testimonial?, ctaLabel?, ctaAction?, dispatcher? }
+- SocialProof: { heading?, subheading?, badgeText?, testimonials?: [{quote, name, location?, rating?, delay?}], disclaimer? }
+- FaqSection: { heading?, subheading?, faqs: [{question, answer, id?}], dispatcher? }
+- CtaSection: { heading, subheading?, buttonLabel?, buttonAction?, guaranteeText?, dispatcher? }
 
 --- 4. ACTION SCHEMAS ---
 - navigate: { "type": "navigate", "url": "step-id" }
